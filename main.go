@@ -14,5 +14,15 @@ func init() {
 }
 
 func main() {
-	storage.NewMysqlClient()
+	dbClient, err := storage.NewMysqlClient()
+
+	if err != nil {
+		log.Fatal("error creating storage client", err)
+	}
+
+	defer func() {
+		dbClient.Close()
+	}()
+
+	dbClient.CreateTableKLine()
 }
