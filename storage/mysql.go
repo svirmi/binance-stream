@@ -3,18 +3,20 @@ package storage
 import (
 	"database/sql"
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/go-sql-driver/mysql"
 )
 
 type Storage struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *slog.Logger
 	// TickChan       chan *models.Tick
 	// BidAskTickChan chan *models.BidAskTick
 }
 
-func NewMysqlClient() (*Storage, error) {
+func NewMysqlClient(logger *slog.Logger) (*Storage, error) {
 	c := mysql.Config{
 		User:                 os.Getenv("MYSQL_USER"),
 		Passwd:               os.Getenv("MYSQL_PASSWORD"),
@@ -39,7 +41,8 @@ func NewMysqlClient() (*Storage, error) {
 	}
 
 	return &Storage{
-		db: db,
+		db:     db,
+		logger: logger,
 		// TickChan:       make(chan *models.Tick, 1), // buffer channel with size 1
 		// BidAskTickChan: make(chan *models.BidAskTick, 1),
 	}, nil
