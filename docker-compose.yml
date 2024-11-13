@@ -1,4 +1,20 @@
 services:
+  data_stream:
+    build:
+      context: ./go-datastream
+    container_name: go-datastream  
+    environment:
+      - APP_ENV=docker
+      - CONFIG_FILE=app/config/docker.yaml
+    volumes:
+      - ./go-backend:/app
+    # ports:
+    #   - "8080:8080"
+    depends_on:
+      questdb:
+        condition: service_started
+        restart: true    
+
   questdb:
     image: questdb/questdb
     container_name: questdb
