@@ -1,13 +1,14 @@
 services:
-  data_stream:
+
+  datastream:
     build:
       context: ./go-datastream
-    container_name: go-datastream  
+    container_name: datastream  
     environment:
       - APP_ENV=docker
       - CONFIG_FILE=app/config/docker.yaml
     volumes:
-      - ./go-backend:/app
+      - ./go-datastream:/app
     # ports:
     #   - "8080:8080"
     depends_on:
