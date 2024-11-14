@@ -1,14 +1,17 @@
 package config
 
 import (
-	"log"
 	"os"
 )
 
-func Load() {
-	configFile := os.Getenv("CONFIG_FILE")
+// https://github.com/MartinEllegard/tibber-harvester/blob/main/config/config.go ???
 
-	if configFile == "" {
-		log.Fatal("CONFIG_FILE variable is not set")
+func Load() string {
+	env := os.Getenv("APP_ENV")
+
+	if env == "" {
+		return "http::addr=localhost:9000;auto_flush_rows=100;auto_flush_interval=1000;"
 	}
+
+	return "http::addr=questdb:9000;auto_flush_rows=100;auto_flush_interval=1000;"
 }
