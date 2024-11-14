@@ -1,0 +1,4 @@
+environment: "prod" # local, dev, prod, docker etc.
+logfile: "app.log"
+qdb:
+  url : ""
