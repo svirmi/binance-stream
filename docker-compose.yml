@@ -1,7 +1,7 @@
 services:
 
   datastream:
-    build:
+    build: 
       context: ./go-datastream
     container_name: datastream  
     environment:

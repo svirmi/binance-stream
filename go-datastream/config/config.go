@@ -4,14 +4,28 @@ import (
 	"os"
 )
 
+type Config struct {
+	Env         string
+	Logfile     string
+	QuestDBAddr string
+}
+
 // https://github.com/MartinEllegard/tibber-harvester/blob/main/config/config.go ???
 
-func Load() string {
+func Load() Config {
 	env := os.Getenv("APP_ENV")
 
 	if env == "" {
-		return "http::addr=localhost:9000;auto_flush_rows=100;auto_flush_interval=1000;"
+		return Config{
+			Env:         "virtualmachine",
+			Logfile:     "app.log",
+			QuestDBAddr: "http::addr=localhost:9000;auto_flush_rows=100;auto_flush_interval=1000;",
+		}
 	}
 
-	return "http::addr=questdb:9000;auto_flush_rows=100;auto_flush_interval=1000;"
+	return Config{
+		Env:         env, // docker
+		Logfile:     "app/app.log",
+		QuestDBAddr: "http::addr=questdb:9000;auto_flush_rows=100;auto_flush_interval=1000;",
+	}
 }
