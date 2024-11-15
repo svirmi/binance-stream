@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,6 +12,7 @@ import (
 	qdb "github.com/questdb/go-questdb-client/v3"
 
 	"github.com/svirmi/binance-stream/config"
+	"github.com/svirmi/binance-stream/utils"
 )
 
 func main() {
@@ -22,7 +24,13 @@ func main() {
 	signal.Notify(interrupt, syscall.SIGINT)
 	signal.Notify(interrupt, os.Interrupt)
 
-	cnfgString := config.Load()
+	config := config.Load()
+
+	logger := utils.SetupLogger(&config)
+
+	logger.Info("application started, environment:", slog.String("env", config.Env), "log file:", slog.String("logfile", ""))
+
+	cnfgString := config.QuestDBAddr
 
 	ctx := context.TODO()
 	// Connect to QuestDB running locally.
@@ -84,6 +92,5 @@ func main() {
 
 	log.Println(ts)
 
-	log.Println("Hello from data stream!")
-
+	logger.Info("Hello from data stream!")
 }
