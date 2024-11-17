@@ -5,10 +5,12 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
 	"github.com/svirmi/binance-stream/config"
+	"github.com/svirmi/binance-stream/models"
 	"github.com/svirmi/binance-stream/storage"
 	"github.com/svirmi/binance-stream/utils"
 )
@@ -36,6 +38,18 @@ func main() {
 	}
 
 	defer questDb.Close()
+
+	// start goroutine to continuously read the KlineChan channel in RedisClient struct and publish data to redis
+	go questDb.PublishKlineTick()
+
+	klineStream := &models.KLineStream{
+		KLineChan: make(chan *models.KlineTick),
+		Wg:        &sync.WaitGroup{},
+		Closer:    make(chan interface{}),
+		Logger:    logger, // do I really need it?
+	}
+
+	klineStream.Logger.Info("message from klineStream logger")
 
 	// Send a few ILP messages.
 	ts = time.Now()

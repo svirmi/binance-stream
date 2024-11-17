@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 
@@ -33,6 +34,13 @@ func NewQuestDbConnection(url string, logger *slog.Logger) (*QuestDbConnection, 
 		Context: ctx,
 		logger:  logger,
 	}, nil
+}
+
+func (questDb *QuestDbConnection) PublishKlineTick() {
+	// loop to continuously read the chan
+	for tick := range questDb.KlineChan {
+		fmt.Println("PublishKlineTick function is running", tick.Symbol)
+	}
 }
 
 func (questDb *QuestDbConnection) Close() {
