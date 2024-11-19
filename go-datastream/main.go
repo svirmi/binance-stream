@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/svirmi/binance-stream/config"
+	"github.com/svirmi/binance-stream/exchanges"
 	"github.com/svirmi/binance-stream/models"
 	"github.com/svirmi/binance-stream/storage"
 	"github.com/svirmi/binance-stream/utils"
@@ -39,14 +40,30 @@ func main() {
 
 	defer questDb.Close()
 
-	// start goroutine to continuously read the KlineChan channel in RedisClient struct and publish data to redis
+	// start goroutine to continuously read the KlineChan channel in QuestDB client struct and publish data to redis
 	go questDb.PublishKlineTick()
 
 	klineStream := &models.KLineStream{
 		KLineChan: make(chan *models.KlineTick),
 		Wg:        &sync.WaitGroup{},
 		Closer:    make(chan interface{}),
-		Logger:    logger, // do I really need it?
+		Logger:    logger, // do I really need it here?
+	}
+
+	pairs := exchanges.Pairs()
+
+	nPairs := len(pairs)
+
+	if nPairs == 0 {
+		logger.Error("no pairs to process")
+		log.Fatal("no pairs to process")
+	}
+
+	logger.Info("pairs to process", slog.Int("pairs", nPairs))
+
+	for _, symbol := range pairs { // https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md
+		klineStream.Wg.Add(1)
+		go exchanges.StartKlinestreams(klineStream, symbol)
 	}
 
 	klineStream.Logger.Info("message from klineStream logger")
@@ -94,13 +111,24 @@ func main() {
 		log.Fatal(err)
 	}
 
+loop:
+
+	for {
+		<-interrupt
+		break loop
+	}
+
+	close(klineStream.Closer)
+
+	klineStream.Wg.Wait()
+
+	close(klineStream.KLineChan)
+
+	logger.Info("finishing program ...")
+
 	// Make sure that the messages are sent over the network.
 	err = questDb.Sender.Flush(questDb.Context)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Println(ts)
-
-	logger.Info("Hello from data stream!")
 }
